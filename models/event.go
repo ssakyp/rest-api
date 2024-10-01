@@ -6,7 +6,7 @@ import "time"
 
 // data / shape that makes up the event
 type Event struct {
-	ID          int       `binding: "required"`
+	ID          int       
 	Name        string    `binding: "required"`
 	Description string    `binding: "required"`
 	Location    string    `binding: "required"`
