@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/pelletier/go-toml/query"
 	"github.com/ssakyp/rest-api/db"
 )
 
@@ -16,10 +15,10 @@ type Event struct {
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserID      int64
+	UserID      int
 }
 
-var events []Event = []Event{} // empty slice of Events
+var events = []Event{} // empty slice of Events
 
 func (e Event) Save() error {
 	// new query we target the table, in () different fields then values
@@ -35,6 +34,7 @@ func (e Event) Save() error {
 	defer stmt.Close()
 
 	// we can pass as many as values
+	// changes updates data
 	result, err := stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.UserID)
 	if err != nil {
 		return err
@@ -48,8 +48,27 @@ func (e Event) Save() error {
 }
 
 // to fetch the data
-func GetAllEvents() []Event {
+func GetAllEvents() ([]Event, error) {
+	//to fetch data
 	query := "SELECT * FROM events"
-	db.DB.Query(query)
-	return events
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	//var events []Event
+
+	// keeps looping as long as there are rows
+	for rows.Next() {
+		var event Event
+		// event is populated with data fetched
+		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+	return events, nil
 }

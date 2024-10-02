@@ -28,7 +28,12 @@ func main() {
 func getEvents(context *gin.Context) {
 	//the function sends back response
 
-	events := models.GetAllEvents()
+	events, err := models.GetAllEvents()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch events. Try again later."})
+		return
+	}
 
 	// arguments for below function are status code and data (structs, maps and slices (gin.H{"message": "Hello!"}) to be sent
 	context.JSON(http.StatusOK, events) // HTML function can also be used but it is uncommon in REST API
@@ -39,14 +44,18 @@ func createEvent(context *gin.Context) {
 	err := context.ShouldBindJSON(&event) //works like a fmt.Scan => stores the data into event => make sure that JSON corresponds our Event struct
 
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse the data!"})
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse requested data!"})
 		return
 	}
 
 	event.ID = 1
 	event.UserID = 1
 
-	event.Save()
+	err = event.Save()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not create events. Try again later."})
+		return
+	}
 
 	context.JSON(http.StatusCreated, gin.H{"message": "Event created!", "event": event})
 }
