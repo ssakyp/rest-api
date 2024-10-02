@@ -20,10 +20,11 @@ type Event struct {
 
 var events = []Event{} // empty slice of Events
 
-func (e Event) Save() error {
+func (e *Event) Save() error {
 	// new query we target the table, in () different fields then values
 	// ? special syntax gives us a sql injection save way
-	query := `INSERT INTO events(name, description, location, dateTime, user_id) 
+	query := `
+	INSERT INTO events(name, description, location, dateTime, user_id) 
 	VALUES (?, ?, ?, ?, ?)`
 
 	stmt, err := db.DB.Prepare(query)
@@ -57,7 +58,7 @@ func GetAllEvents() ([]Event, error) {
 	}
 	defer rows.Close()
 
-	//var events []Event
+	var events []Event
 
 	// keeps looping as long as there are rows
 	for rows.Next() {
@@ -73,7 +74,6 @@ func GetAllEvents() ([]Event, error) {
 	return events, nil
 }
 
-
 func GetEventByID(id int64) (*Event, error) {
 	query := "SELECT * FROM events WHERE id = ?"
 	row := db.DB.QueryRow(query, id)
@@ -84,7 +84,7 @@ func GetEventByID(id int64) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &event, nil
 }
 
@@ -101,7 +101,7 @@ func (event Event) Update() error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(event.Name, event.Description, event.Location, event.Location, event.DateTime, event.ID)	// here we provide the actual value in the same order
+	_, err = stmt.Exec(event.Name, event.Description, event.Location, event.DateTime, event.ID) // here we provide the actual value in the same order
 	return err
 
 }
