@@ -9,7 +9,8 @@ import (
 var DB *sql.DB
 
 func InitDB() {
-	DB, err := sql.Open("sqlite3", "api.db")
+	var err error
+	DB, err = sql.Open("sqlite3", "api.db")
 
 	if err != nil {
 		//crashes the app if there is not DB connection
@@ -21,4 +22,26 @@ func InitDB() {
 	DB.SetMaxOpenConns(10) // how many db connections we can have open simultaneously
 
 	DB.SetMaxIdleConns(5) // how many connections we keep open if noone is using it
+
+	createTables()
+}
+
+func createTables() {
+	createEventsTable := `
+	CREATE TABLE IF NOT EXISTS events (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		description TEXT NOT NULL,
+		location TEXT NOT NULL,
+		datTime DATETIME NOT NULL,
+		user_id INTEGER
+	)
+	`
+
+	_, err := DB.Exec(createEventsTable)
+
+	if err != nil {
+		panic("Could not create events table.")
+	}
+
 }
