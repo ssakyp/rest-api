@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ssakyp/rest-api/db"
@@ -19,6 +20,7 @@ func main() {
 	// if a "/events" is requested then the function (can be anonymous or named) will be executed
 	server.GET("/events", getEvents)
 
+	server.GET("/events/:id", getEvent) // /events/5, /events/1
 	server.POST("/events", createEvent) // in order to create a new event and should have some data for us
 
 	// listens on some incoming requests with domain locally 8080
@@ -37,6 +39,27 @@ func getEvents(context *gin.Context) {
 
 	// arguments for below function are status code and data (structs, maps and slices (gin.H{"message": "Hello!"}) to be sent
 	context.JSON(http.StatusOK, events) // HTML function can also be used but it is uncommon in REST API
+}
+
+// request handler
+func getEvent(context *gin.Context) {
+	// to get a path
+	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse event id"})
+		return
+	}
+
+	event, err := models.GetEventByID(eventId)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch event. Try again later."})
+		return
+	}
+
+	context.JSON(http.StatusOK, event)
+
 }
 
 func createEvent(context *gin.Context) {
