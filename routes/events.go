@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ssakyp/rest-api/models"
+	"github.com/ssakyp/rest-api/utils"
 )
 
 func getEvents(context *gin.Context) {
@@ -44,8 +45,21 @@ func getEvent(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
+	token := context.Request.Header.Get("Authorization")
+
+	if token == "" {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized."})
+		return
+	}
+
+	err := utils.VerifyToken(token)
+
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized."})
+	}
+
 	var event models.Event
-	err := context.ShouldBindJSON(&event) //works like a fmt.Scan => stores the data into event => make sure that JSON corresponds our Event struct
+	err = context.ShouldBindJSON(&event) //works like a fmt.Scan => stores the data into event => make sure that JSON corresponds our Event struct
 
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse requested data!"})
@@ -96,7 +110,6 @@ func updateEvent(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Event updated successfully!"})
 }
 
-
 func deleteEvent(context *gin.Context) {
 	// to get a path
 	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
@@ -113,7 +126,7 @@ func deleteEvent(context *gin.Context) {
 	}
 
 	err = event.Delete()
-	
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not delete the event. Try again later."})
 		return
