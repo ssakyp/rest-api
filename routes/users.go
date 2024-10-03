@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ssakyp/rest-api/models"
+	"github.com/ssakyp/rest-api/utils"
 )
 
 func signup(context *gin.Context) {
@@ -39,9 +40,16 @@ func login(context *gin.Context) {
 	err = user.ValidateCredentials()
 
 	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+		context.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()}) // message could be "Could not authenticate user."
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"mesage": "Login successful!"})
+	token, err := utils.GenerateToken(user.Email, user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not authenticate user."})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"mesage": "Login successful!", "token": token})
 }
