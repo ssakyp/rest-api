@@ -58,4 +58,20 @@ func createTables() {
 		panic("Could not create events table.")
 	}
 
+	// 1. create table
+	createRegistrationsTable := `
+	CREATE TABLE IF NOT EXISTS registrations (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		event_id INTEGER,
+		user_id INTEGER
+		FOREIGN KEY(event_id) REFERENCE events(id)
+		FOREIGN KEY(user_id) REFERENCE users(id)
+	)
+	`
+	// 2. execute it
+	_, err = DB.Exec(createRegistrationsTable)
+
+	if err != nil {
+		panic("Could not create registrations table.")
+	}
 }
